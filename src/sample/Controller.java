@@ -14,9 +14,15 @@ public class Controller {
 
     @FXML
     void clickTriangleButtom(ActionEvent event) {
+        holst.getGraphicsContext2D().clearRect(0,0,holst.getWidth(),holst.getHeight());
         fig.drawTriangulation(holst,0);
     }
 
+    @FXML
+    void clickSimpleModelButton(ActionEvent event) {
+        holst.getGraphicsContext2D().clearRect(0,0,holst.getWidth(),holst.getHeight());
+        fig.drawSimpl(holst,0);
+    }
 
     private Figure fig;
     @FXML

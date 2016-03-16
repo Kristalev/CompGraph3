@@ -19,6 +19,7 @@ public class Figure {
 
     public double Func(float x)
     {
+        //return (float)10 * (2 - 11 * Math.sin(x * Math.PI / 120)) + 150; //кривая, задающая фигуру
         return (float)10 * (2 - 11 * Math.sin(x * Math.PI / 200)) + 150; //кривая, задающая фигуру
         //return (float) (230 * Math.Sin(x*Math.PI/240));
     }
@@ -132,6 +133,17 @@ public class Figure {
         return new Point2D((int)(w/2+point.getX()),(int)(h/2-point.getY()));
     }
 
+    // рисуем простейшую модель
+    public void drawSimpl(Canvas holst,int dX)
+    {
+        for(Point3D[] tran: triangels){
+            boolean ok = true;
+            for (int j = 0; j < 3; j++)
+                if (tran[j].getZ() < 0) ok = false;
+            if (ok) this.drawTriangleSimple(tran, holst, dX);
+        }
+    }
+
     private void drawTriangleSimple(Point3D[] triangle, Canvas holst, int dX)
     {
         // нормали в вершинах
@@ -139,14 +151,13 @@ public class Figure {
 
         int cntNA = 0;
 
-        for (int i = 0; i < triangels.size(); i++)
-        {
+        for(Point3D[] tran: triangels){
             // заполняем значения нормали
-            if (this.pointInTriangle(triangle[1], triangels.get(i)))
+            if (this.pointInTriangle(triangle[1], tran))
             {
-                na[0] += normals[i][0];
-                na[1] += normals[i][1];
-                na[2] += normals[i][2];
+                na[0] += normals[triangels.indexOf(tran)][0];
+                na[1] += normals[triangels.indexOf(tran)][1];
+                na[2] += normals[triangels.indexOf(tran)][2];
                 cntNA++;
             }
 
@@ -158,52 +169,19 @@ public class Figure {
         na[2] = na[2] / cntNA;
 
 
-        Point3D[] int1 = new Point3D[2];
-        Point3D[] int2 = new Point3D[2];
+        int I = (int)Math.min(this.GetIntension(na, 0, 100), 255);
+        I = Math.max(I, 0);
+        Point2D[] points =  new Point2D[3];
+        points[0] = proec(triangle[0],holst.getWidth(),holst.getHeight());
+        points[1] = proec(triangle[1],holst.getWidth(),holst.getHeight());
+        points[2] = proec(triangle[2],holst.getWidth(),holst.getHeight());
+        holst.getGraphicsContext2D().setFill(Color.rgb(I,I,I));
+        double[] arX = {points[0].getX(),points[1].getX(),points[2].getX()};
+        double[] arY = {points[0].getY(),points[1].getY(),points[2].getY()};
+        holst.getGraphicsContext2D().fillPolygon(arX,arY ,3);
 
-        if (triangle[1].getY() == triangle[2].getY())
-        {
-            int1[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());
-            int1[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());
-            int2[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());
-            int2[1] = new Point3D(triangle[2].getX(),triangle[2].getY(),triangle[2].getZ());
 
-        }
-        else
-        {
-            int1[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());
-            int1[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());
-            int2[0] = new Point3D(triangle[2].getX(),triangle[2].getY(),triangle[2].getZ());
-            int2[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());
 
-        }
-
-        for (double y = int1[0].getY(); y < int1[1].getY(); y++)
-        {
-            Point3D p1 = this.intersectIntervalsAndY(y, int1);
-            Point3D p2 = this.intersectIntervalsAndY(y, int2);
-
-            for (double x = p2.getX(); x < p1.getX(); x++)
-            {
-                // интенсивность
-                int I = (int)Math.min(this.GetIntension(na, 0, 100), 255);
-                I = Math.max(I, 0);
-                holst.getGraphicsContext2D().setFill(new Color(I,I,I+30,0));
-                holst.getGraphicsContext2D().fillRect(holst.getWidth()/2 + x,holst.getHeight()/2 + y,1,1);
-            }
-        }
-
-    }
-
-    private Point3D intersectIntervalsAndY(double y, Point3D[] int1)
-    {
-        Point3D p1 = int1[0];
-        Point3D p2 = int1[1];
-        double t = (y - p1.getY()) / (p1.getY() - p2.getY());
-        double xx = p1.getX() + t * (p1.getX() - p2.getX());
-        double yy = p1.getY() + t * (p1.getY() - p2.getY());
-        double zz = p1.getZ() + t * (p1.getZ() - p2.getZ());
-        return new Point3D(xx, yy, zz);
     }
 
     private boolean pointInTriangle(Point3D p, Point3D[] t){
@@ -213,8 +191,8 @@ public class Figure {
 
     private boolean eqPoint(Point3D p1, Point3D p2){
         if (Math.abs( p1.getX() - p2.getX()) > 0.0001) return false;
-        if (Math.abs( p1.getX() - p2.getY()) > 0.0001) return false;
-        if (Math.abs( p1.getX() - p2.getZ()) > 0.0001) return false;
+        if (Math.abs( p1.getY() - p2.getY()) > 0.0001) return false;
+        if (Math.abs( p1.getZ() - p2.getZ()) > 0.0001) return false;
         return true;
     }
 
