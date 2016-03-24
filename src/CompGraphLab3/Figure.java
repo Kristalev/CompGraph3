@@ -19,10 +19,11 @@ public class Figure {
 
     public double Func(float x)
     {
-        //return (float)10 * (2 - 11 * Math.sin(x * Math.PI / 120)) + 150; //кривая, задающая фигуру
-        return (float)10 * (2 - 11 * Math.sin(x * Math.PI / 200)) + 150; //кривая, задающая фигуру
+        //return 10 * (2 - 11 * Math.sin(x * Math.PI / 120)) + 150; //кривая, задающая фигуру
+        return 10 * (2 - 11 * Math.sin(x * Math.PI / 200)) + 150; //кривая, задающая фигуру
         //return (float) (230 * Math.Sin(x*Math.PI/240));
     }
+
 
     public Figure()
     {
@@ -147,28 +148,8 @@ public class Figure {
     private void drawTriangleSimple(Point3D[] triangle, Canvas holst, int dX)
     {
         // нормали в вершинах
-        double[] na = new double[3];
-
-        int cntNA = 0;
-
-        for(Point3D[] tran: triangels){
-            // заполняем значения нормали
-            if (pointInTriangle(triangle[1], tran))
-            {
-                na[0] += normals[triangels.indexOf(tran)][0];
-                na[1] += normals[triangels.indexOf(tran)][1];
-                na[2] += normals[triangels.indexOf(tran)][2];
-                cntNA++;
-            }
-
-        }
-
-
-        // нормализуем нормали
-        na[0] = na[0] / cntNA;
-        na[1] = na[1] / cntNA;
-        na[2] = na[2] / cntNA;
-
+        double[] na;// = new double[3];
+        na = normals[triangels.indexOf(triangle)];
 
         int I = (int)Math.min(this.getIntension(na), 255);
         I = Math.max(I, 0);
@@ -243,25 +224,110 @@ public class Figure {
         Point3D[] int1 = new Point3D[2];
         Point3D[] int2 = new Point3D[2];
         double[] nI11, nI12, nI21, nI22;
+        int flag = 0;
         if (triangle[1].getY() == triangle[2].getY()){
-            int1[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());
-            int1[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());
-            int2[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());
-            int2[1] = new Point3D(triangle[2].getX(),triangle[2].getY(),triangle[2].getZ());
+            int1[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());    //вершина треуг точка a
+            int1[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());    //конец точка b
+            int2[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());     //вершина треуг точка a
+            int2[1] = new Point3D(triangle[2].getX(),triangle[2].getY(),triangle[2].getZ());     //конец точка с
+            nI11 = na;
+            nI12 = nb;
+            nI21 = na;
+            nI22 = nc;
+            flag = 1;
 
         }else{
-            int1[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());
-            int1[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());
-            int2[0] = new Point3D(triangle[2].getX(),triangle[2].getY(),triangle[2].getZ());
-            int2[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());
+            int1[0] = new Point3D(triangle[0].getX(),triangle[0].getY(),triangle[0].getZ());    //конец точка a
+            int1[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());     //вершина треуг точка b
+            int2[0] = new Point3D(triangle[2].getX(),triangle[2].getY(),triangle[2].getZ());    //конец точка с
+            int2[1] = new Point3D(triangle[1].getX(),triangle[1].getY(),triangle[1].getZ());     //вершина треуг точка b
+            nI11 = na;
+            nI12 = nb;
+            nI21 = nc;
+            nI22 = nb;
+            flag = 2;
         }
-
-        for(double y = int1[0].getY(); int1[1].getY() - y > 0.001; y++){
+        //Закоменченный гуро.
+        /*for (double y = int1[0].getY(); y < int1[1].getY(); y++) {
             Point3D p1 = this.intersectIntervalsAndY(y, int1);
             Point3D p2 = this.intersectIntervalsAndY(y, int2);
-            int I1 = (int)(Ib + ((Ic - Ib)*(y - int1[0].getY())) / (int1[1].getY()- int1[0].getY()));
-            int I2 = (int)(Ib + ((Ia - Ib)*(y - int1[0].getY())) / (int2[1].getY()- int1[0].getY()));
-            for (double x = p2.getX(); p1.getX() - x > 0.001; x++)
+            double[] N1 = new double[3];
+            double[] N2 = new double[3];
+
+            // интерполирование нормалей
+            N1[0] = nI12[0] + (nI11[0] - nI12[0]) * (y - int1[1].getY()) / (int1[0].getY() - int1[1].getY());
+            N1[1] = nI12[1] + (nI11[1] - nI12[1]) * (y - int1[1].getY()) / (int1[0].getY() - int1[1].getY());
+            N1[2] = nI12[2] + (nI11[2] - nI12[2]) * (y - int1[1].getY()) / (int1[0].getY() - int1[1].getY());
+
+            N2[0] = nI22[0] + (nI21[0] - nI22[0]) * (y - int2[1].getY()) / (int2[0].getY() - int2[1].getY());
+            N2[1] = nI22[1] + (nI21[1] - nI22[1]) * (y - int2[1].getY()) / (int2[0].getY() - int2[1].getY());
+            N2[2] = nI22[2] + (nI21[2] - nI22[2]) * (y - int2[1].getY()) / (int2[0].getY() - int2[1].getY());
+
+            for (double x = p2.getX(); x < p1.getX(); x++) {
+                double[] N = new double[3];
+                // нормаль в точке грани
+                N[0] = N1[0] + (N2[0] - N1[0]) * (x - p1.getX()) / (p2.getX() - p1.getX());
+                N[1] = N1[1] + (N2[1] - N1[1]) * (x - p1.getX()) / (p2.getX() - p1.getX());
+                N[2] = N1[2] + (N2[2] - N1[2]) * (x - p1.getX()) / (p2.getX() - p1.getX());
+
+                int I = Math.min(255, (int) this.getIntension(N));
+                I = Math.max(I, 0);
+                Point2D point = proec(new Point3D(x, y, 0), holst.getWidth() + dX, holst.getHeight());
+                holst.getGraphicsContext2D().getPixelWriter().setColor((int) point.getX(), (int) point.getY(), Color.rgb(I, I, I));
+                //g.FillRectangle(new SolidBrush(Color.FromArgb(I, I, I+30)), mx / 2 + x, my / 2 - y, 1, 1);
+            }*/
+
+        if (flag == 1){
+            for(double y = int1[1].getY();  y > int1[0].getY(); y--) {
+                Point3D p1 = this.intersectIntervalsAndY(y, int2);
+                Point3D p2 = this.intersectIntervalsAndY(y, int1);
+                int I1 = (int) (Ia + ((Ic - Ia) * (y - int1[0].getY())) / (int2[1].getY() - int2[0].getY()));
+                int I2 = (int) (Ia + ((Ib - Ia) * (y - int1[0].getY())) / (int1[1].getY() - int1[0].getY()));
+                for (double x = p1.getX(); x < p2.getX(); x++) {
+                    // интенсивность
+                    int I = (int) (I1 + (I2 - I1) * (x - p1.getX()) / (p2.getX() - p1.getX()));
+                    I = Math.min(I, 255);
+                    I = Math.max(0, I);
+                    Point2D point = proec(new Point3D(x, y, 0), holst.getWidth() + dX, holst.getHeight());
+                    //holst.getGraphicsContext2D().getPixelWriter().setColor((int)(x+holst.getWidth()/2+dX),(int)(x-holst.getHeight()/2), Color.rgb(I,I,I));
+                    holst.getGraphicsContext2D().getPixelWriter().setColor((int) point.getX(), (int) point.getY(), Color.rgb(I, I, I));
+                    //g.FillRectangle(new SolidBrush(Color.FromArgb(I, I, I+30)), mx / 2 + x, my / 2 - y, 1, 1);
+                }
+            }
+        }
+        if (flag == 2){
+            for(double y = int1[1].getY();  y > int1[0].getY(); y--){
+                Point3D p1 = this.intersectIntervalsAndY1(y, int2);
+                Point3D p2 = this.intersectIntervalsAndY1(y, int1);
+                int I1 = (int)(Ib + ((Ic - Ib)*(y - int1[1].getY())) / (int2[0].getY()- int1[1].getY()));
+                int I2 = (int)(Ib + ((Ia - Ib)*(y - int1[1].getY())) / (int1[0].getY()- int1[1].getY()));
+                for (double x = p1.getX(); x < p2.getX(); x++)
+                {
+                    // интенсивность
+                    int I = (int)(I1 + (I2- I1)*(x - p1.getX())/(p2.getX() - p1.getX()));
+                    I = Math.min(I, 255);
+                    I = Math.max(0,I);
+                    Point2D point =  proec(new Point3D(x,y,0),holst.getWidth()+dX,holst.getHeight());
+                    //holst.getGraphicsContext2D().getPixelWriter().setColor((int)(x+holst.getWidth()/2+dX),(int)(x-holst.getHeight()/2), Color.rgb(I,I,I));
+                    holst.getGraphicsContext2D().getPixelWriter().setColor((int)point.getX(),(int)point.getY(), Color.rgb(I,I,I));
+                    //g.FillRectangle(new SolidBrush(Color.FromArgb(I, I, I+30)), mx / 2 + x, my / 2 - y, 1, 1);
+                }
+            }
+        }
+        /*for(double y = int1[0].getY();  y < int1[1].getY(); y++){
+            Point3D p1 = this.intersectIntervalsAndY(y, int1);
+            Point3D p2 = this.intersectIntervalsAndY(y, int2);
+            int I1 = 0 ;
+            int I2 = 0;
+            if (flag == 1){
+                I1 = (int)(Ia + ((Ic - Ia)*(y - int1[0].getY())) / (int2[1].getY()- int2[0].getY()));
+                I2 = (int)(Ia + ((Ib - Ia)*(y - int1[0].getY())) / (int1[1].getY()- int1[0].getY()));
+            }
+            if (flag == 2){
+                I1 = (int)(Ib + ((Ic - Ib)*(y - int1[1].getY())) / (int2[0].getY()- int1[1].getY()));
+                I2 = (int)(Ib + ((Ia - Ib)*(y - int1[1].getY())) / (int1[0].getY()- int1[1].getY()));
+            }
+            for (double x = p2.getX(); x < p1.getX(); x++)
             {
                 // интенсивность
                 int I = (int)(I1 + (I2- I1)*(x - p1.getX())/(p2.getX() - p1.getX()));
@@ -273,9 +339,8 @@ public class Figure {
                 //g.FillRectangle(new SolidBrush(Color.FromArgb(I, I, I+30)), mx / 2 + x, my / 2 - y, 1, 1);
             }
 
-        }
-
-}
+        }*/
+    }
 
 
     private boolean pointInTriangle(Point3D p, Point3D[] t){
@@ -335,6 +400,17 @@ public class Figure {
     {
         Point3D p1 = int1[0];
         Point3D p2 = int1[1];
+        double t = (y - p1.getY()) / (p1.getY() - p2.getY());
+        double xx = p1.getX() + t * (p1.getX() - p2.getX());
+        double yy = p1.getY() + t * (p1.getY() - p2.getY());
+        double zz = p1.getZ() + t * (p1.getZ() - p2.getZ());
+        return new Point3D(xx, yy, zz);
+    }
+
+    private Point3D intersectIntervalsAndY1(double y, Point3D[] int1)
+    {
+        Point3D p2 = int1[0];
+        Point3D p1 = int1[1];
         double t = (y - p1.getY()) / (p1.getY() - p2.getY());
         double xx = p1.getX() + t * (p1.getX() - p2.getX());
         double yy = p1.getY() + t * (p1.getY() - p2.getY());
